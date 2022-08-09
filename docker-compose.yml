@@ -1,0 +1,124 @@
+version: "3.7"
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    expose:
+      - 5432
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=totalshakedb
+    restart: unless-stopped
+    networks:
+      - total-shake-network
+
+  discovery:
+    build: total-shake-discovery/
+
+    image: discovery:latest
+
+    container_name: total-shake-discovery
+
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery:8761/eureka
+
+    expose:
+      - 8761
+
+    ports:
+      - 8761:8761
+
+    networks:
+      - total-shake-network
+
+  gateway:
+    build: total-shake-gateway/.
+
+    image: gateway:latest
+
+    container_name: total-shake-gateway
+
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery:8761/eureka
+
+    expose:
+      - 8080
+
+    ports:
+      - 8080:8080
+
+    depends_on:
+      - discovery
+
+    networks:
+      - total-shake-network
+
+  pedidos:
+    build: total-shake-pedidos/.
+
+    image: pedidos:latest
+
+    container_name: total-shake-pedidos
+
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/totalshakedb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+
+    depends_on:
+      - postgres  
+      - discovery
+      - gateway   
+
+    links:
+      - postgres  
+      - discovery
+      - gateway       
+
+    ports:
+      - 8080
+
+    networks:
+      - total-shake-network
+
+  pagamentos:
+    build: total-shake-pagamentos/.
+
+    image: pagamentos:latest
+
+    container_name: total-shake-pagamentos
+
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/totalshakedb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+
+    depends_on:
+      - postgres  
+      - discovery
+      - gateway
+
+    links:
+      - postgres  
+      - discovery
+      - gateway   
+
+    ports:
+      - 8080
+
+    networks:
+      - total-shake-network
+
+networks:
+  total-shake-network:
+
+volumes:
+  postgres-data:

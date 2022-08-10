@@ -77,14 +77,6 @@ services:
       - discovery
       - gateway   
 
-    links:
-      - postgres  
-      - discovery
-      - gateway       
-
-    ports:
-      - 8080
-
     networks:
       - total-shake-network
 
@@ -105,14 +97,6 @@ services:
       - postgres  
       - discovery
       - gateway
-
-    links:
-      - postgres  
-      - discovery
-      - gateway   
-
-    ports:
-      - 8080
 
     networks:
       - total-shake-network
